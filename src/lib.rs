@@ -59,6 +59,26 @@ impl Node {
         }
     }
 
+    fn iter_get(&self, mut x: u32, mut y: u32, mut z: u32, mut s: u32) -> Option<&Voxel> {
+        let mut this = self;
+
+        loop {
+            match this {
+                Node::Leaf(voxel) => return voxel.as_ref(),
+                Node::Branch { children } => {
+                    s /= 2;
+                    let index = ((x >= s) as usize) << 0 | ((y >= s) as usize) << 1 | ((z >= s) as usize) << 2;
+
+                    this = &children[index];
+
+                    x %= s;
+                    y %= s;
+                    z %= s;
+                }
+            }
+        }
+    }
+
     fn get(&self, x: u32, y: u32, z: u32, size: u32) -> Option<&Voxel> {
         match self {
             Node::Leaf(voxel) => voxel.as_ref(),
