@@ -38,13 +38,13 @@ impl SparseVoxelOctree {
     }
 
     fn get(&self, x: u32, y: u32, z: u32) -> Option<&Voxel> {
-        self.root.get(x, y, z, 2_u32.pow(self.max_depth))
+        self.root.get(x, y, z, 2_u32.pow(self.max_depth - 1))
     }
 
     fn insert(&mut self, x: u32, y: u32, z: u32, node: Node, depth: u32) {
         if depth > self.max_depth { self.max_depth = depth; }
         self.root
-            .insert(x, y, z, node, 2_u32.pow(self.max_depth), depth);
+            .insert(x, y, z, node, 2_u32.pow(self.max_depth - 1), depth);
     }
 }
 
@@ -66,7 +66,6 @@ impl Node {
             match this {
                 Node::Leaf(voxel) => return voxel.as_ref(),
                 Node::Branch { children } => {
-                    s /= 2;
                     let index = ((x >= s) as usize) << 0 | ((y >= s) as usize) << 1 | ((z >= s) as usize) << 2;
 
                     this = &children[index];
@@ -74,6 +73,8 @@ impl Node {
                     x %= s;
                     y %= s;
                     z %= s;
+                    
+                    s /= 2;
                 }
             }
         }
@@ -83,10 +84,9 @@ impl Node {
         match self {
             Node::Leaf(voxel) => voxel.as_ref(),
             Node::Branch { children } => {
-                let s = size / 2;
-                let index = ((x >= s) as usize) << 0 | ((y >= s) as usize) << 1 | ((z >= s) as usize) << 2;
+                let index = ((x >= size) as usize) << 0 | ((y >= size) as usize) << 1 | ((z >= size) as usize) << 2;
 
-                children[index].get(x % s, y % s, z % s, s)
+                children[index].get(x % size, y % size, z % size, size / 2)
             }
         }
     }
@@ -99,10 +99,9 @@ impl Node {
 
         match self {
             Node::Branch { children } => {
-                let s = size / 2;
-                let index = ((x >= s) as usize) << 0 | ((y >= s) as usize) << 1 | ((z >= s) as usize) << 2;
+                let index = ((x >= size) as usize) << 0 | ((y >= size) as usize) << 1 | ((z >= size) as usize) << 2;
 
-                children[index].insert(x % s, y % s, z % s, node, s, depth - 1)
+                children[index].insert(x % size, y % size, z % size, node, size / 2, depth - 1)
             }
             Node::Leaf(voxel) => {
                 let voxel = voxel.clone();
