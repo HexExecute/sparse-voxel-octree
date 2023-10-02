@@ -38,13 +38,13 @@ impl SparseVoxelOctree {
     }
 
     fn get(&self, x: u32, y: u32, z: u32) -> Option<&Voxel> {
-        self.root.get(x, y, z, 2_u32.pow(self.max_depth - 1))
+        self.root.get(x, y, z, 1_u32 << (self.max_depth - 1))
     }
 
     fn insert(&mut self, x: u32, y: u32, z: u32, node: Node, depth: u32) {
         if depth > self.max_depth { self.max_depth = depth; }
         self.root
-            .insert(x, y, z, node, 2_u32.pow(self.max_depth - 1), depth);
+            .insert(x, y, z, node, 1_u32 << (self.max_depth - 1), depth);
     }
 }
 
